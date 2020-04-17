@@ -74,9 +74,9 @@ func Ping(addr string, version string, TTL int) (*net.IPAddr, time.Duration, boo
 
     reply := make([]byte, 1000)
     
-    err = connection.SetReadDeadline(time.Now().Add(time.Duration(TTL) * time.Second))
+    err = connection.SetReadDeadline(time.Now().Add(time.Duration(TTL) * time.Millisecond))
     if err != nil {
-    	log.Printf("ICMP: time exceeded %s sent to 10.1.3.251 (dest was 10.1.2.14)", TTL)
+    	log.Printf("ICMP: time exceeded %s", TTL)
         return destination, 0,true, err
     }
 
@@ -103,7 +103,7 @@ func Ping(addr string, version string, TTL int) (*net.IPAddr, time.Duration, boo
 func main() {
 	var argc = len(os.Args)
 	var targetSite = os.Args[1]
-	var ttl = 10
+	var ttl = 50
 	var version = "ipv4"
 	var packetsSent = 0
 	var packetsLost = 0
@@ -133,7 +133,10 @@ func main() {
         destination, dur, packetLost, err := Ping(addr, v, timeToLive)
         packetsSent++
         if err != nil {
-            log.Printf("Ping %s (%s): %s\n", addr, destination, err)
+            if(packetLost){
+            packetsLost++
+            }
+            log.Printf("ICMP: time exceeded %d Packets Sent: %d Packets Lost: %d\n", ttl, packetsSent, packetsLost)
             return
         }
         if(packetLost){
